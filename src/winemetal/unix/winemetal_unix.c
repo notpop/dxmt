@@ -1594,6 +1594,21 @@ _CreateMetalViewFromHWND(void *obj) {
     pfn_macdrv_view_get_metal_layer = dlsym(RTLD_DEFAULT, "macdrv_view_get_metal_layer");
   }
 
+  /* DXMT debug trace: help diagnose "window is registered but
+   * stays transparent" on macOS Tahoe / Wine 11.x.
+   * Enable with DXMT_DEBUG_METAL_VIEW=1 in the environment. */
+  int debug_metal_view = getenv("DXMT_DEBUG_METAL_VIEW") != NULL;
+
+  if (debug_metal_view) {
+    fprintf(stderr,
+            "[dxmt/winemetal] CreateMetalViewFromHWND: hwnd=%p macdrv_functions=%p "
+            "get_win_data=%p release_win_data=%p create_metal_view=%p get_metal_layer=%p\n",
+            (void *)(uintptr_t)params->hwnd, (void *)macdrv_functions,
+            (void *)pfn_get_win_data, (void *)pfn_release_win_data,
+            (void *)pfn_macdrv_view_create_metal_view,
+            (void *)pfn_macdrv_view_get_metal_layer);
+  }
+
   if (pfn_get_win_data && pfn_release_win_data && pfn_macdrv_view_create_metal_view &&
       pfn_macdrv_view_get_metal_layer) {
     struct macdrv_win_data *win_data = pfn_get_win_data((HWND)params->hwnd);
@@ -1603,7 +1618,20 @@ _CreateMetalViewFromHWND(void *obj) {
     if (view) {
       params->ret_layer = (obj_handle_t)pfn_macdrv_view_get_metal_layer(view);
     }
+    if (debug_metal_view) {
+      fprintf(stderr,
+              "[dxmt/winemetal] CreateMetalViewFromHWND: hwnd=%p win_data=%p "
+              "client_cocoa_view=%p view=%p layer=%p\n",
+              (void *)(uintptr_t)params->hwnd, (void *)win_data,
+              win_data ? (void *)win_data->client_cocoa_view : NULL,
+              (void *)view,
+              (void *)(uintptr_t)params->ret_layer);
+    }
     pfn_release_win_data(win_data);
+  } else if (debug_metal_view) {
+    fprintf(stderr,
+            "[dxmt/winemetal] CreateMetalViewFromHWND: one of the macdrv "
+            "function pointers is NULL, silently returning empty view/layer\n");
   }
 
   return STATUS_SUCCESS;
