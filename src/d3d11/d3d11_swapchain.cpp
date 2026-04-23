@@ -579,13 +579,6 @@ public:
                               ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
                               : colorspace_,
                           LayerSupportEDR());
-    // DXMT debug: diagnose transparent-window symptoms on macOS Tahoe + Wine 11.
-    // Emitted at DEBUG level; enable with DXMT_LOG_LEVEL=debug.
-    DEBUG("DXMT trace ApplyLayerProps: desc=", desc_.Width, "x", desc_.Height,
-          " scale=", scale_factor, " drawable=",
-          static_cast<uint32_t>(desc_.Width * scale_factor), "x",
-          static_cast<uint32_t>(desc_.Height * scale_factor),
-          " samples=", desc_.SampleDesc.Count);
     if (presenter->changeLayerProperties(
             ConvertSwapChainFormat(desc_.Format), target_color_space, desc_.Width * scale_factor,
             desc_.Height * scale_factor, desc_.SampleDesc.Count
@@ -751,12 +744,6 @@ public:
                           && !fullscreen_desc_.Windowed && !window_minimized && !wsi::isForeground(hWnd);
     if (hr == S_OK && should_exit_fs)
       hr = DXGI_STATUS_OCCLUDED;
-    // DXMT debug: Present1 entry trace. Emitted at DEBUG level; enable with
-    // DXMT_LOG_LEVEL=debug to diagnose transparent-window symptoms.
-    DEBUG("DXMT trace Present1: sync=", SyncInterval, " flags=", PresentFlags,
-          " minimized=", window_minimized, " w=", desc_.Width, " h=", desc_.Height,
-          " swap_effect=", static_cast<uint32_t>(desc_.SwapEffect),
-          " hr=0x", std::hex, static_cast<uint32_t>(hr), std::dec);
     if (PresentFlags & DXGI_PRESENT_TEST)
       return hr;
 
