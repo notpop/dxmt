@@ -15,6 +15,7 @@
 
 #include "../thread.hpp"
 #include "../log/log.hpp"
+#include <iomanip>
 
 namespace dxmt {
 
